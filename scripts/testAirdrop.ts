@@ -1,7 +1,7 @@
 import { AddressLike, BytesLike } from "ethers";
 import { ethers } from "hardhat";
-import addrHash from "./airdropTree/Jay's-Airdrop/data.json";
-import tree from "./airdropTree/Jay's-Airdrop/tree.json";
+// import addrHash from "./airdropTree/Jay's-Airdrop/data.json";
+// import tree from "./airdropTree/Jay's-Airdrop/tree.json";
 
 interface WinnerData {
   winner: AddressLike;
