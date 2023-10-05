@@ -1,20 +1,33 @@
 import MerkleTree from "merkletreejs";
-import path from "path";
-import * as fs from "fs";
+// import { keccak256 } from "ethers/lib/utils";
 import csv from "csv-parser";
-import { Data, generateAirdropCSV, getPath } from "./addAirdropInfo";
+import * as fs from "fs";
+// import { utils } from "ethers";
+import path from "path";
+// import { Data } from "./hashData";
 import { solidityPackedKeccak256, keccak256 } from "ethers";
-import { AddressProof } from "./generateProof";
 
-const winnersFile = path.join(__dirname, "userdata/data.csv");
+//This might not be used
 
-const generateAirdropTree = async (airdropName: string, airdropId: number) => {
+export interface AddressProof {
+  leaf: string;
+  proof: string[];
+}
+
+export interface Data {
+  // hash?: string;
+  address: string;
+  amount?: number;
+}
+
+const csvfile = path.join(__dirname, "userdata/data.csv");
+
+async function generateMerkleTree(csvFilePath: string): Promise<void> {
   const data: Data[] = [];
-  //first generate the election csv data
-  const csvFile = await generateAirdropCSV(winnersFile, airdropName, airdropId);
 
+  // Read the CSV file and store the data in an array
   await new Promise((resolve, reject) => {
-    fs.createReadStream(csvFile)
+    fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on("data", (row: Data) => {
         data.push(row);
@@ -24,15 +37,18 @@ const generateAirdropTree = async (airdropName: string, airdropId: number) => {
   });
   let leaf: string;
   let leaves: string[] = [];
-
+  // Hash the data using the Solidity keccak256 function
   for (const row of data) {
     leaf = solidityPackedKeccak256(
-      ["address", "bytes32", "uint256"],
-      [row.address, row.hash, row.airdropId]
+      //    ["address", "uint256", "uint256", "bytes32"],
+      //    [row.address, row.itemID, row.amount, row.hash]
+      ["address", "uint256"],
+      [row.address, row.amount]
     );
     leaves.push(leaf);
   }
 
+  // Create the Merkle tree
   const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
   const addressProofs: { [address: string]: AddressProof } = {};
   data.forEach((row, index) => {
@@ -43,42 +59,36 @@ const generateAirdropTree = async (airdropName: string, airdropId: number) => {
     };
   });
 
+  // Write the Merkle tree and root to a file
   await new Promise<void>((resolve, reject) => {
-    fs.writeFile(
-      `${getPath(csvFile)}/tree.json`,
-      JSON.stringify(addressProofs),
-      (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+    fs.writeFile("merkle_tree.json", JSON.stringify(addressProofs), (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
       }
-    );
+    });
   });
 
+  // Write a JSON object mapping addresses to data to a file
   const addressData: { [address: string]: Data } = {};
   data.forEach((row) => {
     addressData[row.address] = row;
   });
 
   await new Promise<void>((resolve, reject) => {
-    fs.writeFile(
-      `${getPath(csvFile)}/data.json`,
-      JSON.stringify(addressData),
-      (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+    fs.writeFile("address_data.json", JSON.stringify(addressData), (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
       }
-    );
+    });
   });
   console.log("0x" + tree.getRoot().toString("hex"));
-};
+}
 
-generateAirdropTree("Jay's-Airdrop", 0).catch((error) => {
+generateMerkleTree(csvfile).catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
