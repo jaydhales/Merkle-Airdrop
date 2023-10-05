@@ -1,5 +1,7 @@
 import { AddressLike, BytesLike } from "ethers";
 import { ethers } from "hardhat";
+import addrHash from "./airdropTree/Jay's-Airdrop/data.json";
+import tree from "./airdropTree/Jay's-Airdrop/tree.json";
 
 interface WinnerData {
   winner: AddressLike;
@@ -9,7 +11,7 @@ interface WinnerData {
 
 const testAirdrop = async () => {
   const _duration = 86400;
-  const _proof =
+  const _root =
     "0x0f8c0b2dfa7ae154c74465bbc05a9a8d66a56a9f68755a0c57e1637f708f9874";
   const winnerStruct: WinnerData = {
     winner: "0x001daa61eaa241a8d89607194fc3b1184dcb9b4c",
@@ -28,11 +30,19 @@ const testAirdrop = async () => {
 
   console.log({ createdDrop: await airdropContract.drops(0) });
 
-  await airdropContract.activateAirDrop(0, _proof);
+  const signer = await ethers.getImpersonatedSigner(
+    "0x001daa61eaa241a8d89607194fc3b1184dcb9b4c"
+  );
+
+  await airdropContract.activateAirDrop(0, _root);
 
   console.log({ createdDrop: await airdropContract.drops(0) });
 
-  await airdropContract.claim(winnerStruct, 0);
+  await airdropContract.claim(
+    winnerStruct,
+    0,
+    "0x9411a4f61401da6e3c7852fc84cf10597969595756f8e2687e031b3723485800"
+  );
 };
 
 testAirdrop().catch((error) => {

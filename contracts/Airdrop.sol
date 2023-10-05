@@ -41,7 +41,7 @@ contract Airdrop is ERC20("Airdrop", "AdNft") {
         drops[_id].active = true;
     }
 
-    function claim(WinnerData calldata _winner, uint _id ) public {
+    function claim(WinnerData calldata _winner, uint _id, bytes32 leaf ) public {
         require(_id < _dropsCounter, "Invalid ID");
         Drops memory d = drops[_dropsCounter];
 
@@ -50,7 +50,7 @@ contract Airdrop is ERC20("Airdrop", "AdNft") {
         );
 
 
-        require(MerkleProofLib.verify(_winner.winnerProof, d.merkleRoot, node), "Invalid User");
+        require(MerkleProofLib.verify(_winner.winnerProof, d.merkleRoot, leaf), "Invalid User");
         claimed[_winner.winner][_id] = true;
         _mint(_winner.winner, 10 ether);
     }
