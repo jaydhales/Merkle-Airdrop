@@ -3,7 +3,7 @@ import csv from "csv-parser";
 import * as fs from "fs";
 import { solidityPackedKeccak256, keccak256 } from "ethers";
 import path from "path";
-import { Data } from "./hashData";
+import { Data } from "./addAirdropInfo";
 
 //This might not be used
 
