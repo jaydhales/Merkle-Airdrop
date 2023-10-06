@@ -1,10 +1,7 @@
 import MerkleTree from "merkletreejs";
-// import { keccak256 } from "ethers/lib/utils";
 import csv from "csv-parser";
 import * as fs from "fs";
-// import { utils } from "ethers";
 import path from "path";
-// import { Data } from "./hashData";
 import { solidityPackedKeccak256, keccak256 } from "ethers";
 
 //This might not be used
@@ -17,7 +14,7 @@ export interface AddressProof {
 export interface Data {
   // hash?: string;
   address: string;
-  amount?: number;
+  amount: number;
 }
 
 const csvfile = path.join(__dirname, "userdata/data.csv");
@@ -40,8 +37,6 @@ async function generateMerkleTree(csvFilePath: string): Promise<void> {
   // Hash the data using the Solidity keccak256 function
   for (const row of data) {
     leaf = solidityPackedKeccak256(
-      //    ["address", "uint256", "uint256", "bytes32"],
-      //    [row.address, row.itemID, row.amount, row.hash]
       ["address", "uint256"],
       [row.address, row.amount]
     );
@@ -72,8 +67,8 @@ async function generateMerkleTree(csvFilePath: string): Promise<void> {
 
   // Write a JSON object mapping addresses to data to a file
   const addressData: { [address: string]: Data } = {};
-  data.forEach((row) => {
-    addressData[row.address] = row;
+  data.forEach((row, index) => {
+    addressData[index] = row;
   });
 
   await new Promise<void>((resolve, reject) => {
