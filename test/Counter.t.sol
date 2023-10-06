@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console2, stdJson} from "forge-std/Test.sol";
 import {Airdrop} from "../src/Airdrop.sol";
 
-contract CounterTest is Test {
+contract AirdropTest is Test {
     Airdrop public airdrop;
     using stdJson for string;
     struct Result {
@@ -17,7 +17,7 @@ contract CounterTest is Test {
     address user1 = 0x001Daa61Eaa241A8D89607194FC3b1184dcB9B4C;
     uint user1Amt = 45000000000000;
 
-    Result public r;
+    Result public result;
 
     function setUp() public {
         airdrop = new Airdrop(root);
@@ -29,14 +29,24 @@ contract CounterTest is Test {
             string.concat(".", vm.toString(user1))
         );
 
-        r = abi.decode(res, (Result));
+        result = abi.decode(res, (Result));
+    }
+
+    // test the user cannot claim twice (claim once , then claim again)
+    function testUserCantClaimTwice() public {
+        _claim();
+        vm.expectRevert("You have already claimed!");
+        _claim();
     }
 
     function testClaim() public {
-        bool success = airdrop.claim(r.proof, user1, user1Amt);
-
+        bool success = _claim();
         assertEq(airdrop.balanceOf(user1), user1Amt);
 
         assertTrue(success);
+    }
+
+    function _claim() internal returns (bool success) {
+        success = airdrop.claim(result.proof, user1, user1Amt);
     }
 }

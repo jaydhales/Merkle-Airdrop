@@ -77,7 +77,6 @@ contract Airdrop is ERC20 {
         require(success, "MerkleDistributor: Invalid proof.");
         hasClaimed[claimer] = true;
         _mint(claimer, _amount);
-        hasClaimed[claimer] = true;
         emit AddressClaim(claimer, _amount);
     }
 }
